@@ -1,17 +1,19 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Students from "./pages/Students";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <h1 class="text-3xl font-bold underline">
-    Hello world!
-  </h1>
-  )
-}
+    <Router>
+      <div className="flex">
+        <Sidebar />
 
-export default App
+        <div className="flex-1 md:ml-64 mt-16 md:mt-0 p-4">
+          <Routes>
+            <Route path="/students" element={<Students />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
+}
