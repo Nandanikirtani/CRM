@@ -20,6 +20,8 @@ export default function Students() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
 
+  const API_URL = "https://crm-8ihs.onrender.com";
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -46,7 +48,7 @@ export default function Students() {
   const [toast, setToast] = useState(null);
 
   const fetchStudents = () => {
-    fetch("http://localhost:5000/api/students")
+    fetch(`${API_URL}/api/students`)
       .then((res) => res.json())
       .then((data) => setStudents(data));
   };
@@ -58,8 +60,8 @@ export default function Students() {
   const handleAddStudent = async () => {
     const method = editingStudent ? "PUT" : "POST";
     const url = editingStudent
-      ? `http://localhost:5000/api/students/${editingStudent._id}`
-      : "http://localhost:5000/api/students";
+      ? `${API_URL}/api/students/${editingStudent._id}`
+      : `${API_URL}/api/students`;
 
     await fetch(url, {
       method,
@@ -73,7 +75,7 @@ export default function Students() {
   };
 
   const handleDelete = async (id) => {
-    await fetch(`http://localhost:5000/api/students/${id}`, {
+    await fetch(`${API_URL}/api/students/${id}`, {
       method: "DELETE",
     });
     setSelectedStudent(null);
@@ -81,7 +83,7 @@ export default function Students() {
   };
 
   const handleUpdate = async (id, updatedData) => {
-    await fetch(`http://localhost:5000/api/students/${id}`, {
+    await fetch(`${API_URL}/api/students/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedData),
