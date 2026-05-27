@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { MoreVertical, X } from "lucide-react";
 import toast from "react-hot-toast";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const classes = [
   "LKG",
   "UKG",
@@ -68,7 +69,7 @@ export default function FeesPage() {
   const fetchStudents = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/fees/${selectedClass}`,
+        `${API_URL}/api/fees/${selectedClass}`,
       );
 
       setStudents(res.data);
@@ -83,7 +84,7 @@ export default function FeesPage() {
 
   const updateStatus = async () => {
     try {
-      await axios.patch(`http://localhost:5000/api/fees/${drawer._id}`, {
+      await axios.patch(`${API_URL}/api/fees/${drawer._id}`, {
         monthlyStatus: drawer.monthlyStatus,
       });
 
