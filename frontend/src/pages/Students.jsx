@@ -20,7 +20,7 @@ export default function Students() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
 
-  const API_URL = "https://crm-8ihs.onrender.com";
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const [form, setForm] = useState({
     name: "",
@@ -29,28 +29,38 @@ export default function Students() {
     subject: [], // multiple subjects
     type: "Institution",
     fees: "",
-    status: "Pending",
   });
 
   const subjectsList = [
     "Mathematics",
     "Science",
     "English",
+    "Social Studies",
+    "Computer Science",
     "Accounts",
     "Economics",
   ];
   // Filters
   const [classFilter, setClassFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
   const [subjectFilter, setSubjectFilter] = useState("All");
   const [feeFilter, setFeeFilter] = useState("All");
   const [toast, setToast] = useState(null);
 
-  const fetchStudents = () => {
-    fetch(`${API_URL}/api/students`)
-      .then((res) => res.json())
-      .then((data) => setStudents(data));
+  const fetchStudents = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/students`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch students");
+      }
+
+      const data = await response.json();
+
+      setStudents(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -58,20 +68,47 @@ export default function Students() {
   }, []);
 
   const handleAddStudent = async () => {
-    const method = editingStudent ? "PUT" : "POST";
-    const url = editingStudent
-      ? `${API_URL}/api/students/${editingStudent._id}`
-      : `${API_URL}/api/students`;
+    try {
+      const method = editingStudent ? "PUT" : "POST";
 
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+      const url = editingStudent
+        ? `${API_URL}/api/students/${editingStudent._id}`
+        : `${API_URL}/api/students`;
 
-    setShowForm(false);
-    setEditingStudent(null);
-    fetchStudents();
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log(errorData);
+
+        alert(errorData.message || "Failed to save student");
+        return;
+      }
+
+      fetchStudents();
+
+      setShowForm(false);
+      setEditingStudent(null);
+
+      // RESET FORM
+      setForm({
+        name: "",
+        phone: "",
+        class: "",
+        subject: [],
+        type: "Institution",
+        fees: "",
+      });
+    } catch (error) {
+      console.log(error);
+      alert("Something went wrong");
+    }
   };
 
   const handleDelete = async (id) => {
@@ -115,7 +152,6 @@ export default function Students() {
       s.name.toLowerCase().includes(search.toLowerCase()) &&
       (classFilter === "All" || s.class === classFilter) &&
       (typeFilter === "All" || s.type === typeFilter) &&
-      (statusFilter === "All" || s.status === statusFilter) &&
       (subjectFilter === "All" || s.subject?.includes(subjectFilter)) &&
       (feeFilter === "All" ||
         (feeFilter === "low" && s.fees < 3000) ||
@@ -194,16 +230,6 @@ export default function Students() {
         </select>
 
         <select
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border rounded-xl"
-        >
-          <option value="All">Status</option>
-          <option value="Paid">Paid</option>
-          <option value="Overdue">Overdue</option>
-          <option value="Pending">Pending</option>
-        </select>
-
-        <select
           onChange={(e) => setFeeFilter(e.target.value)}
           className="px-4 py-2 border rounded-xl"
         >
@@ -225,7 +251,6 @@ export default function Students() {
               <th className="p-3">Subject</th>
               <th className="p-3">Type</th>
               <th className="p-3">Fees</th>
-              <th className="p-3">Status</th>
               <th></th>
             </tr>
           </thead>
@@ -239,22 +264,6 @@ export default function Students() {
                 <td className="p-3">{s.subject.join(" ")}</td>
                 <td className="p-3">{s.type}</td>
                 <td className="p-3">₹{s.fees}</td>
-
-                {/* STATUS PILL (UNCHANGED) */}
-                <td className="p-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold
-                    ${
-                      s.status === "Paid"
-                        ? "bg-green-100 text-green-700"
-                        : s.status === "Overdue"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {s.status}
-                  </span>
-                </td>
 
                 <td className="p-3 text-right">
                   <button
@@ -313,6 +322,7 @@ export default function Students() {
 
             {/* Class */}
             <select
+              value={form.class}
               onChange={(e) => setForm({ ...form, class: e.target.value })}
               className="w-full mb-3 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-black/20"
             >
@@ -359,6 +369,7 @@ export default function Students() {
 
             {/* Type */}
             <select
+              value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
               className="w-full mb-3 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-black/20"
             >
@@ -376,16 +387,6 @@ export default function Students() {
                 className="w-full p-2 outline-none"
               />
             </div>
-
-            {/* Status */}
-            <select
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full mb-4 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-black/20"
-            >
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Overdue">Overdue</option>
-            </select>
 
             {/* Actions */}
             <div className="flex justify-end gap-3">
@@ -439,43 +440,6 @@ export default function Students() {
                 >
                   ✕
                 </button>
-              </div>
-
-              {/* STATUS */}
-              <div className="mb-5">
-                <p className="text-sm font-semibold mb-2 text-gray-600">
-                  Payment Status
-                </p>
-
-                <div className="flex gap-2 flex-wrap">
-                  {["Paid", "Pending", "Overdue"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          status,
-                        })
-                      }
-                      className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300
-                ${
-                  form.status === status
-                    ? status === "Paid"
-                      ? "bg-green-500 text-white scale-105"
-                      : status === "Overdue"
-                        ? "bg-red-500 text-white scale-105"
-                        : "bg-yellow-500 text-white scale-105"
-                    : status === "Paid"
-                      ? "bg-green-100 text-green-700"
-                      : status === "Overdue"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* FORM */}

@@ -1,18 +1,39 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Sidebar from "./components/Sidebar";
+
 import Students from "./pages/Students";
+
+import FeesPage from "./pages/Fees";
 
 export default function App() {
   return (
     <Router>
-      <div className="flex">
+      <div className="min-h-screen bg-slate-100">
+        {/* SIDEBAR */}
+
         <Sidebar />
 
-        <div className="flex-1 md:ml-64 mt-16 md:mt-0 p-4">
+        {/* MAIN CONTENT */}
+
+        <main
+          className="
+            transition-all duration-300
+
+            md:ml-64
+
+            pt-[72px]
+            md:pt-0
+
+            min-h-screen
+          "
+        >
           <Routes>
             <Route path="/students" element={<Students />} />
+
+            <Route path="/fees" element={<FeesPage />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </Router>
   );
