@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import feesRoutes from "./routes/feesRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -16,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use("/api/students", studentRoutes);
 app.use("/api/fees", feesRoutes);
+app.use("/api/teachers", teacherRoutes);
 app.get("/", (req, res) => {
   res.send("API Running...");
 });

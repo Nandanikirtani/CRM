@@ -6,6 +6,8 @@ import Students from "./pages/Students";
 
 import FeesPage from "./pages/Fees";
 
+import TeachersPage from "./pages/Teachers";
+
 export default function App() {
   return (
     <Router>
@@ -32,6 +34,7 @@ export default function App() {
             <Route path="/students" element={<Students />} />
 
             <Route path="/fees" element={<FeesPage />} />
+            <Route path="/teachers" element={<TeachersPage />} />
           </Routes>
         </main>
       </div>
