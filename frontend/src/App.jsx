@@ -8,6 +8,8 @@ import FeesPage from "./pages/Fees";
 
 import TeachersPage from "./pages/Teachers";
 
+import Dashboard from "./pages/Dashboard";
+
 export default function App() {
   return (
     <Router>
@@ -32,9 +34,9 @@ export default function App() {
         >
           <Routes>
             <Route path="/students" element={<Students />} />
-
             <Route path="/fees" element={<FeesPage />} />
             <Route path="/teachers" element={<TeachersPage />} />
+            <Route path="/" element={<Dashboard />} />
           </Routes>
         </main>
       </div>

@@ -29,6 +29,10 @@ const studentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    joiningDate: {
+      type: Date,
+      required: true,
+    },
 
     // NEW
     teacher: {
@@ -41,20 +45,16 @@ const studentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
+    
     status: {
       type: String,
-      enum: [
-        "Paid",
-        "Pending",
-        "Overdue",
-      ],
+      enum: ["Paid", "Pending", "Overdue"],
       default: "Pending",
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.model(

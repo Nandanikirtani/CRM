@@ -18,8 +18,6 @@ const menuItems = [
   { name: "Students", icon: Users, path: "/students" },
   { name: "Fees", icon: CreditCard, path: "/fees" },
   { name: "Teachers", icon: GraduationCap, path: "/teachers" },
-  { name: "Expenses", icon: DollarSign, path: "/expenses" },
-  { name: "Notifications", icon: Bell, path: "/notifications" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 

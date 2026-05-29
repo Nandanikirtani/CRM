@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import feesRoutes from "./routes/feesRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -18,6 +19,10 @@ app.use(express.json());
 app.use("/api/students", studentRoutes);
 app.use("/api/fees", feesRoutes);
 app.use("/api/teachers", teacherRoutes);
+app.use(
+  "/api/dashboard",
+  dashboardRoutes
+);
 app.get("/", (req, res) => {
   res.send("API Running...");
 });

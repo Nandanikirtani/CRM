@@ -29,6 +29,7 @@ export default function Students() {
     subject: [], // multiple subjects
     type: "Institution",
     fees: "",
+    joiningDate: "",
   });
 
   const subjectsList = [
@@ -251,6 +252,7 @@ export default function Students() {
               <th className="p-3">Subject</th>
               <th className="p-3">Type</th>
               <th className="p-3">Fees</th>
+              <th className="p-3">Joining Date</th>
               <th></th>
             </tr>
           </thead>
@@ -264,6 +266,9 @@ export default function Students() {
                 <td className="p-3">{s.subject.join(" ")}</td>
                 <td className="p-3">{s.type}</td>
                 <td className="p-3">₹{s.fees}</td>
+                <td className="p-3">
+                  {new Date(s.joiningDate).toLocaleDateString("en-GB")}
+                </td>
 
                 <td className="p-3 text-right">
                   <button
@@ -387,7 +392,21 @@ export default function Students() {
                 className="w-full p-2 outline-none"
               />
             </div>
+            {/* JOINING DATE */}
 
+            <div className="flex items-center border rounded-xl mb-3 px-3 focus-within:ring-2 focus-within:ring-black/20">
+              <input
+                type="date"
+                value={form.joiningDate}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    joiningDate: e.target.value,
+                  })
+                }
+                className="w-full p-2 outline-none"
+              />
+            </div>
             {/* Actions */}
             <div className="flex justify-end gap-3">
               <button
