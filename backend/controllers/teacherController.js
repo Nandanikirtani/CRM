@@ -141,3 +141,53 @@ export const deleteTeacher =
       });
     }
   };
+
+  // REMOVE STUDENT FROM TEACHER
+
+export const removeStudentFromTeacher =
+  async (req, res) => {
+    try {
+      const { teacherId, studentId } =
+        req.params;
+
+      const teacher =
+        await Teacher.findById(teacherId);
+
+      if (!teacher) {
+        return res.status(404).json({
+          message: "Teacher not found",
+        });
+      }
+
+      teacher.students =
+        teacher.students.filter(
+          (student) =>
+            student.toString() !==
+            studentId
+        );
+
+      await teacher.save();
+
+      // OPTIONAL:
+      // remove teacher from student too
+
+      await Student.findByIdAndUpdate(
+        studentId,
+        {
+          teacher: null,
+          teacherShare: 0,
+        }
+      );
+
+      res.json({
+        message:
+          "Student removed successfully",
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message: "Server Error",
+      });
+    }
+  };

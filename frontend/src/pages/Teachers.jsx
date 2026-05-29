@@ -88,6 +88,20 @@ export default function TeachersPage() {
     }
   };
 
+  // DELETE STUDENT FROM TEACHER
+
+const deleteStudent = async (teacherId, studentId) => {
+  try {
+    await axios.delete(
+      `${API}/api/teachers/${teacherId}/remove-student/${studentId}`,
+    );
+
+    fetchTeachers();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
   // ASSIGN STUDENT
 
   const assignStudent = async (teacherId) => {
@@ -316,6 +330,7 @@ export default function TeachersPage() {
                             [teacher._id]: {
                               name: value,
                               id: "",
+                              selected: false,
                             },
                           });
                         }}
@@ -324,43 +339,45 @@ export default function TeachersPage() {
 
                       {/* SUGGESTIONS */}
 
-                      {selectedStudent[teacher._id]?.name && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-52 overflow-y-auto z-50">
-                          {students
-                            .filter((student) =>
-                              student.name
-                                .toLowerCase()
-                                .includes(
-                                  selectedStudent[
-                                    teacher._id
-                                  ]?.name.toLowerCase(),
-                                ),
-                            )
-                            .map((student) => (
-                              <button
-                                key={student._id}
-                                onClick={() =>
-                                  setSelectedStudent({
-                                    ...selectedStudent,
-                                    [teacher._id]: {
-                                      name: student.name,
-                                      id: student._id,
-                                    },
-                                  })
-                                }
-                                className="w-full text-left px-4 py-3 hover:bg-slate-100 transition-all border-b last:border-none"
-                              >
-                                <div className="font-medium text-slate-800">
-                                  {student.name}
-                                </div>
+                      {selectedStudent[teacher._id]?.name &&
+                        !selectedStudent[teacher._id]?.selected && (
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-52 overflow-y-auto z-50">
+                            {students
+                              .filter((student) =>
+                                student.name
+                                  .toLowerCase()
+                                  .includes(
+                                    selectedStudent[
+                                      teacher._id
+                                    ]?.name.toLowerCase(),
+                                  ),
+                              )
+                              .map((student) => (
+                                <button
+                                  key={student._id}
+                                  onClick={() => {
+                                    setSelectedStudent({
+                                      ...selectedStudent,
+                                      [teacher._id]: {
+                                        name: student.name,
+                                        id: student._id,
+                                        selected: true,
+                                      },
+                                    });
+                                  }}
+                                  className="w-full text-left px-4 py-3 hover:bg-slate-100 transition-all border-b last:border-none"
+                                >
+                                  <div className="font-medium text-slate-800">
+                                    {student.name}
+                                  </div>
 
-                                <div className="text-xs text-slate-500">
-                                  {student.class}
-                                </div>
-                              </button>
-                            ))}
-                        </div>
-                      )}
+                                  <div className="text-xs text-slate-500">
+                                    {student.class}
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        )}
                     </div>
 
                     <input
@@ -387,6 +404,8 @@ export default function TeachersPage() {
 
                 {/* STUDENTS */}
 
+                {/* STUDENTS */}
+
                 <div className="space-y-4">
                   {teacher.students.map((student) => (
                     <motion.div
@@ -396,7 +415,8 @@ export default function TeachersPage() {
                       key={student._id}
                       className="bg-slate-50 hover:bg-slate-100 transition-all duration-300 rounded-3xl p-4 flex items-center justify-between gap-3 overflow-hidden"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      {/* LEFT */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="bg-indigo-100 p-2 md:p-3 rounded-2xl flex-shrink-0">
                           <Users size={16} className="text-indigo-600" />
                         </div>
@@ -412,8 +432,9 @@ export default function TeachersPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
-                        <div className="text-right">
+                      {/* RIGHT */}
+                      <div className="flex items-center gap-2 md:gap-5 flex-shrink-0">
+                        <div className="text-right hidden sm:block">
                           <p className="text-[10px] md:text-xs text-slate-500">
                             Fees
                           </p>
@@ -423,13 +444,23 @@ export default function TeachersPage() {
                           </h2>
                         </div>
 
-                        <div className="bg-green-100 text-green-700 px-3 py-2 rounded-2xl flex items-center gap-1 md:gap-2">
+                        <div className="bg-green-100 text-green-700 px-2 md:px-3 py-2 rounded-2xl flex items-center gap-1 md:gap-2">
                           <IndianRupee size={14} />
 
                           <span className="font-bold text-sm md:text-base">
                             {student.teacherShare}
                           </span>
                         </div>
+
+                        {/* DELETE BUTTON */}
+                        <button
+                          onClick={() =>
+                            deleteStudent(teacher._id, student._id)
+                          }
+                          className="bg-red-100 hover:bg-red-500 text-red-600 hover:text-white transition-all duration-300 p-2 md:p-3 rounded-2xl active:scale-95 flex-shrink-0"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </motion.div>
                   ))}
