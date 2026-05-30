@@ -1,241 +1,347 @@
 import Student from "../models/Student.js";
 import Teacher from "../models/Teacher.js";
 
-export const getDashboardData =
-  async (req, res) => {
-    try {
-      const students =
-        await Student.find();
+export const getDashboardData = async (req, res) => {
+  try {
+    const students = await Student.find();
+    const teachers = await Teacher.find();
 
-      const teachers =
-        await Teacher.find();
+    const totalStudents = students.length;
+    const totalTeachers = teachers.length;
 
-      const totalStudents =
-        students.length;
+    // ===== FEES =====
 
-      const totalTeachers =
-        teachers.length;
+    const totalFees = students.reduce(
+      (total, student) =>
+        total + Number(student.fees || 0),
+      0
+    );
 
-      const totalRevenue =
-        students.reduce(
-          (total, student) =>
-            total +
-            Number(student.fees || 0),
+    const collectedFees = students.reduce(
+      (total, student) =>
+        student.status === "Paid"
+          ? total + Number(student.fees || 0)
+          : total,
+      0
+    );
+
+    const pendingFees =
+      totalFees - collectedFees;
+
+    // ===== TEACHER SALARY =====
+
+    const totalSalary = teachers.reduce(
+      (total, teacher) =>
+        total +
+        teacher.students.reduce(
+          (sum, s) =>
+            sum + Number(s.teacherShare || 0),
           0
+        ),
+      0
+    );
+
+    // ===== PROFIT =====
+
+    const totalProfit =
+      collectedFees - totalSalary;
+
+    // ===== STATUS COUNTS =====
+
+    const paidStudents =
+      students.filter(
+        (student) =>
+          student.status === "Paid"
+      ).length;
+
+    const pendingStudents =
+      students.filter(
+        (student) =>
+          student.status === "Pending"
+      ).length;
+
+    const overdueStudents =
+      students.filter(
+        (student) =>
+          student.status === "Overdue"
+      ).length;
+
+    // ===== CURRENT MONTH =====
+
+    const now = new Date();
+
+    const currentMonth =
+      now.getMonth();
+
+    const currentYear =
+      now.getFullYear();
+
+    const currentMonthStudents =
+      students.filter((student) => {
+        const date = new Date(
+          student.createdAt
         );
 
-      const totalSalary =
-        students.reduce(
-          (total, student) =>
-            total +
-            Number(
-              student.teacherShare || 0
-            ),
-          0
+        return (
+          date.getMonth() ===
+            currentMonth &&
+          date.getFullYear() ===
+            currentYear
         );
+      });
 
-      const totalProfit =
-        totalRevenue - totalSalary;
-
-      const paidStudents =
-        students.filter(
-          (student) =>
-            student.status === "Paid"
-        ).length;
-
-      const pendingStudents =
-        students.filter(
-          (student) =>
-            student.status === "Pending"
-        ).length;
-
-      const overdueStudents =
-        students.filter(
-          (student) =>
-            student.status === "Overdue"
-        ).length;
-
-      const now = new Date();
-
-      const currentMonth =
-        now.getMonth();
-
-      const currentYear =
-        now.getFullYear();
-
-      // CURRENT MONTH
-
-      const currentMonthStudents =
-        students.filter((student) => {
-          const date = new Date(
-            student.createdAt
-          );
-
-          return (
-            date.getMonth() ===
-              currentMonth &&
-            date.getFullYear() ===
-              currentYear
-          );
-        });
-
-      const currentMonthRevenue =
-        currentMonthStudents.reduce(
-          (total, student) =>
-            total +
-            Number(student.fees || 0),
-          0
-        );
-
-      const currentMonthSalary =
-        currentMonthStudents.reduce(
-          (total, student) =>
-            total +
-            Number(
-              student.teacherShare || 0
-            ),
-          0
-        );
-
-      const currentMonthProfit =
-        currentMonthRevenue -
-        currentMonthSalary;
-
-      // PREVIOUS MONTH
-
-      const previousMonthStudents =
-        students.filter((student) => {
-          const date = new Date(
-            student.createdAt
-          );
-
-          return (
-            date.getMonth() ===
-              currentMonth - 1 &&
-            date.getFullYear() ===
-              currentYear
-          );
-        });
-
-      const previousMonthRevenue =
-        previousMonthStudents.reduce(
-          (total, student) =>
-            total +
-            Number(student.fees || 0),
-          0
-        );
-
-      const previousMonthSalary =
-        previousMonthStudents.reduce(
-          (total, student) =>
-            total +
-            Number(
-              student.teacherShare || 0
-            ),
-          0
-        );
-
-      const previousMonthProfit =
-        previousMonthRevenue -
-        previousMonthSalary;
-
-      const monthlyData = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ].map((month, index) => {
-        const monthStudents =
-          students.filter((student) => {
-            const date = new Date(
-              student.createdAt
-            );
-
-            return (
-              date.getMonth() ===
-              index
-            );
-          });
-
-        const revenue =
-          monthStudents.reduce(
-            (total, student) =>
-              total +
+    const currentMonthRevenue =
+      currentMonthStudents.reduce(
+        (total, student) =>
+          student.status === "Paid"
+            ? total +
               Number(
                 student.fees || 0
-              ),
-            0
-          );
+              )
+            : total,
+        0
+      );
 
-        const salary =
-          monthStudents.reduce(
-            (total, student) =>
-              total +
+    const currentMonthStudentIds =
+      new Set(
+        currentMonthStudents.map(
+          (s) =>
+            s._id.toString()
+        )
+      );
+
+    let currentMonthSalary = 0;
+
+    teachers.forEach((teacher) => {
+      teacher.students.forEach(
+        (s) => {
+          if (
+            currentMonthStudentIds.has(
+              s.student.toString()
+            )
+          ) {
+            currentMonthSalary +=
               Number(
-                student.teacherShare ||
-                  0
-              ),
-            0
-          );
+                s.teacherShare || 0
+              );
+          }
+        }
+      );
+    });
 
-        return {
-          month,
-          revenue,
-          salary,
-          profit:
-            revenue - salary,
-        };
-      });
+    const currentMonthProfit =
+      currentMonthRevenue -
+      currentMonthSalary;
 
-      const recentStudents =
-        await Student.find()
-          .sort({ createdAt: -1 })
-          .limit(5);
+    // ===== PREVIOUS MONTH =====
 
-      const recentActivity =
-        recentStudents.map(
-          (student) => ({
-            id: student._id,
+    const previousDate =
+      new Date();
 
-            text: `${student.name} joined ${student.class}`,
+    previousDate.setMonth(
+      previousDate.getMonth() - 1
+    );
 
-            createdAt:
-              student.createdAt,
-          })
+    const previousMonth =
+      previousDate.getMonth();
+
+    const previousYear =
+      previousDate.getFullYear();
+
+    const previousMonthStudents =
+      students.filter((student) => {
+        const date = new Date(
+          student.createdAt
         );
 
-      res.json({
-        totalStudents,
-        totalTeachers,
-
-        totalRevenue,
-        totalSalary,
-        totalProfit,
-
-        paidStudents,
-        pendingStudents,
-        overdueStudents,
-
-        currentMonthProfit,
-        previousMonthProfit,
-
-        monthlyData,
-
-        recentActivity,
+        return (
+          date.getMonth() ===
+            previousMonth &&
+          date.getFullYear() ===
+            previousYear
+        );
       });
-    } catch (error) {
-      console.log(error);
 
-      res.status(500).json({
-        message: "Server Error",
-      });
-    }
-  };
+    const previousMonthRevenue =
+      previousMonthStudents.reduce(
+        (total, student) =>
+          student.status === "Paid"
+            ? total +
+              Number(
+                student.fees || 0
+              )
+            : total,
+        0
+      );
+
+    const previousMonthStudentIds =
+      new Set(
+        previousMonthStudents.map(
+          (s) =>
+            s._id.toString()
+        )
+      );
+
+    let previousMonthSalary = 0;
+
+    teachers.forEach((teacher) => {
+      teacher.students.forEach(
+        (s) => {
+          if (
+            previousMonthStudentIds.has(
+              s.student.toString()
+            )
+          ) {
+            previousMonthSalary +=
+              Number(
+                s.teacherShare || 0
+              );
+          }
+        }
+      );
+    });
+
+    const previousMonthProfit =
+      previousMonthRevenue -
+      previousMonthSalary;
+
+    // ===== MONTHLY CHART =====
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const monthlyData =
+      months.map(
+        (month, index) => {
+          const monthStudents =
+            students.filter(
+              (student) => {
+                const date =
+                  new Date(
+                    student.createdAt
+                  );
+
+                return (
+                  date.getMonth() ===
+                  index
+                );
+              }
+            );
+
+          const revenue =
+            monthStudents.reduce(
+              (
+                total,
+                student
+              ) =>
+                student.status ===
+                "Paid"
+                  ? total +
+                    Number(
+                      student.fees ||
+                        0
+                    )
+                  : total,
+              0
+            );
+
+          const monthStudentIds =
+            new Set(
+              monthStudents.map(
+                (s) =>
+                  s._id.toString()
+              )
+            );
+
+          let salary = 0;
+
+          teachers.forEach(
+            (teacher) => {
+              teacher.students.forEach(
+                (s) => {
+                  if (
+                    monthStudentIds.has(
+                      s.student.toString()
+                    )
+                  ) {
+                    salary +=
+                      Number(
+                        s.teacherShare ||
+                          0
+                      );
+                  }
+                }
+              );
+            }
+          );
+
+          return {
+            month,
+            revenue,
+            salary,
+            profit:
+              revenue - salary,
+          };
+        }
+      );
+
+    // ===== RECENT ACTIVITY =====
+
+    const recentStudents =
+      await Student.find()
+        .sort({
+          createdAt: -1,
+        })
+        .limit(5);
+
+    const recentActivity =
+      recentStudents.map(
+        (student) => ({
+          id: student._id,
+          text: `${student.name} joined ${student.class}`,
+          createdAt:
+            student.createdAt,
+        })
+      );
+
+    res.json({
+      totalStudents,
+      totalTeachers,
+
+      totalFees,
+      collectedFees,
+      pendingFees,
+
+      totalSalary,
+      totalProfit,
+
+      paidStudents,
+      pendingStudents,
+      overdueStudents,
+
+      currentMonthProfit,
+      previousMonthProfit,
+
+      monthlyData,
+      recentActivity,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
