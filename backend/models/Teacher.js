@@ -9,16 +9,18 @@ const teacherSchema =
 
     students: [
       {
-        type:
-          mongoose.Schema.Types.ObjectId,
-        ref: "Student",
+        student: {
+          type:
+            mongoose.Schema.Types.ObjectId,
+          ref: "Student",
+        },
+
+        teacherShare: {
+          type: Number,
+          default: 0,
+        },
       },
     ],
-
-    totalSalary: {
-      type: Number,
-      default: 0,
-    },
   });
 
 export default mongoose.model(

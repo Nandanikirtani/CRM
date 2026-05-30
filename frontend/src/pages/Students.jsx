@@ -40,6 +40,9 @@ export default function Students() {
     "Computer Science",
     "Accounts",
     "Economics",
+    "Business Studies",
+    "Artificial Intelligence",
+    "All"
   ];
   // Filters
   const [classFilter, setClassFilter] = useState("All");

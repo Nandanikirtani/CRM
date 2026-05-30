@@ -29,23 +29,12 @@ const studentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+
     joiningDate: {
       type: Date,
       required: true,
     },
 
-    // NEW
-    teacher: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Teacher",
-    },
-
-    // NEW
-    teacherShare: {
-      type: Number,
-      default: 0,
-    },
-    
     status: {
       type: String,
       enum: ["Paid", "Pending", "Overdue"],
@@ -54,7 +43,7 @@ const studentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export default mongoose.model(

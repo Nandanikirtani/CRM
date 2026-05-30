@@ -4,43 +4,42 @@ import Student from "../models/Student.js";
 
 // GET ALL TEACHERS
 
-export const getTeachers = async (
-  req,
-  res
-) => {
+export const getTeachers = async (req, res) => {
   try {
-    const teachers =
-      await Teacher.find();
+    const teachers = await Teacher.find().populate(
+      "students.student"
+    );
 
-    const teacherData =
-      await Promise.all(
-        teachers.map(
-          async (teacher) => {
-            const students =
-              await Student.find({
-                teacher:
-                  teacher._id,
-              });
+    const teacherData = teachers.map(
+      (teacher) => {
+        const totalSalary =
+          teacher.students.reduce(
+            (sum, item) =>
+              sum + item.teacherShare,
+            0
+          );
 
-            const totalSalary =
-              students.reduce(
-                (sum, student) =>
-                  sum +
-                  student.teacherShare,
-                0
-              );
+        return {
+          ...teacher._doc,
 
-            return {
-              ...teacher._doc,
-              students,
-              totalSalary,
-            };
-          }
-        )
-      );
+          students:
+            teacher.students.map(
+              (item) => ({
+                ...item.student._doc,
+                teacherShare:
+                  item.teacherShare,
+              })
+            ),
+
+          totalSalary,
+        };
+      }
+    );
 
     res.json(teacherData);
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       message: error.message,
     });
@@ -50,108 +49,140 @@ export const getTeachers = async (
 
 // ADD TEACHER
 
-export const addTeacher =
-  async (req, res) => {
-    try {
-
-      console.log("BODY:", req.body);
-
-      const teacher =
-        await Teacher.create(
-          req.body
-        );
-
-      res.json(teacher);
-
-    } catch (error) {
-
-      console.log(
-        "ERROR:",
-        error
-      );
-
-      res.status(500).json({
-        message: error.message,
+export const addTeacher = async (
+  req,
+  res
+) => {
+  try {
+    const teacher =
+      await Teacher.create({
+        name: req.body.name,
       });
-    }
-  };
+
+    res.json(teacher);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+// ADD STUDENT TO TEACHER
 
 export const addStudentToTeacher =
   async (req, res) => {
     try {
-
       const {
         studentId,
         teacherShare,
       } = req.body;
+
+      const teacher =
+        await Teacher.findById(
+          req.params.id
+        );
+
+      if (!teacher) {
+        return res.status(404).json({
+          message: "Teacher not found",
+        });
+      }
 
       const student =
         await Student.findById(
           studentId
         );
 
-      student.teacher =
-        req.params.id;
+      if (!student) {
+        return res.status(404).json({
+          message: "Student not found",
+        });
+      }
 
-      student.teacherShare =
-        teacherShare;
+      const alreadyAssigned =
+        teacher.students.find(
+          (item) =>
+            item.student.toString() ===
+            studentId
+        );
 
-      await student.save();
+      if (alreadyAssigned) {
+        return res.status(400).json({
+          message:
+            "Student already assigned to this teacher",
+        });
+      }
 
-      res.json(student);
+      teacher.students.push({
+        student: studentId,
+        teacherShare: Number(
+          teacherShare
+        ),
+      });
 
+      await teacher.save();
+
+      res.json({
+        message:
+          "Student assigned successfully",
+      });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         message: error.message,
       });
     }
   };
+
+
 // DELETE TEACHER
 
 export const deleteTeacher =
   async (req, res) => {
     try {
-      await Teacher.findByIdAndDelete(
-        req.params.id
-      );
+      const teacher =
+        await Teacher.findByIdAndDelete(
+          req.params.id
+        );
 
-      // REMOVE TEACHER FROM STUDENTS
-
-      await Student.updateMany(
-        {
-          teacher:
-            req.params.id,
-        },
-        {
-          $unset: {
-            teacher: "",
-          },
-
-          teacherShare: 0,
-        }
-      );
+      if (!teacher) {
+        return res.status(404).json({
+          message: "Teacher not found",
+        });
+      }
 
       res.json({
         message:
-          "Teacher Deleted",
+          "Teacher deleted successfully",
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         message: error.message,
       });
     }
   };
 
-  // REMOVE STUDENT FROM TEACHER
+
+// REMOVE STUDENT FROM TEACHER
 
 export const removeStudentFromTeacher =
   async (req, res) => {
     try {
-      const { teacherId, studentId } =
-        req.params;
+      const {
+        teacherId,
+        studentId,
+      } = req.params;
 
       const teacher =
-        await Teacher.findById(teacherId);
+        await Teacher.findById(
+          teacherId
+        );
 
       if (!teacher) {
         return res.status(404).json({
@@ -161,23 +192,12 @@ export const removeStudentFromTeacher =
 
       teacher.students =
         teacher.students.filter(
-          (student) =>
-            student.toString() !==
+          (item) =>
+            item.student.toString() !==
             studentId
         );
 
       await teacher.save();
-
-      // OPTIONAL:
-      // remove teacher from student too
-
-      await Student.findByIdAndUpdate(
-        studentId,
-        {
-          teacher: null,
-          teacherShare: 0,
-        }
-      );
 
       res.json({
         message:
@@ -187,7 +207,7 @@ export const removeStudentFromTeacher =
       console.log(error);
 
       res.status(500).json({
-        message: "Server Error",
+        message: error.message,
       });
     }
   };
