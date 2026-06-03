@@ -8,8 +8,8 @@ import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const classes = [
-  "LKG",
-  "UKG",
+  "Nursery",
+  "KG",
   "1st",
   "2nd",
   "3rd",

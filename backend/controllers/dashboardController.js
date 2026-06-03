@@ -1,13 +1,32 @@
 import Student from "../models/Student.js";
 import Teacher from "../models/Teacher.js";
+import Fees from "../models/Fees.js";
 
 export const getDashboardData = async (req, res) => {
   try {
     const students = await Student.find();
     const teachers = await Teacher.find();
-
+    const feesRecords = await Fees.find().populate("studentId");
     const totalStudents = students.length;
     const totalTeachers = teachers.length;
+
+    const monthKeys = [
+  "jan",
+  "feb",
+  "mar",
+  "apr",
+  "may",
+  "jun",
+  "jul",
+  "aug",
+  "sep",
+  "oct",
+  "nov",
+  "dec",
+];
+
+const currentMonthKey =
+  monthKeys[new Date().getMonth()];
 
     // ===== FEES =====
 
@@ -17,13 +36,24 @@ export const getDashboardData = async (req, res) => {
       0
     );
 
-    const collectedFees = students.reduce(
-      (total, student) =>
-        student.status === "Paid"
-          ? total + Number(student.fees || 0)
-          : total,
-      0
-    );
+    const collectedFees = feesRecords.reduce(
+  (total, fee) => {
+    if (
+      fee.monthlyStatus?.[currentMonthKey] ===
+      "Paid"
+    ) {
+      return (
+        total +
+        Number(
+          fee.studentId?.fees || 0
+        )
+      );
+    }
+
+    return total;
+  },
+  0
+);
 
     const pendingFees =
       totalFees - collectedFees;
@@ -173,6 +203,8 @@ export const getDashboardData = async (req, res) => {
             : total,
         0
       );
+
+      
 
     const previousMonthStudentIds =
       new Set(
