@@ -6,6 +6,7 @@ import {
   deleteTeacher,
   addStudentToTeacher,
   removeStudentFromTeacher,
+  updateSalaryPercentage
 } from "../controllers/teacherController.js";
 
 const router = express.Router();
@@ -21,5 +22,9 @@ router.delete("/:id", deleteTeacher);
 router.delete(
   "/:teacherId/remove-student/:studentId",
   removeStudentFromTeacher,
+);
+router.put(
+  "/:id/percentage",
+  updateSalaryPercentage
 );
 export default router;
