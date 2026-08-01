@@ -16,10 +16,12 @@ export const getTeachers = async (req, res) => {
       return {
         ...teacher._doc,
 
-        students: teacher.students.map((item) => ({
-          ...item.student._doc,
-          teacherShare: item.teacherShare,
-        })),
+        students: teacher.students
+          .filter((item) => item.student)
+          .map((item) => ({
+            ...item.student._doc,
+            teacherShare: item.teacherShare,
+          })),
 
         totalSalary,
       };
