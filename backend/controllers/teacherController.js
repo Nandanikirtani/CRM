@@ -8,20 +8,25 @@ export const getTeachers = async (req, res) => {
     const teachers = await Teacher.find().populate("students.student");
 
     const teacherData = teachers.map((teacher) => {
-      const totalSalary = teacher.students.reduce(
-        (sum, item) => sum + item.teacherShare,
-        0,
+
+      // Only keep valid/populated students
+      const validStudents = teacher.students.filter(
+        (item) => item.student
+      );
+
+      // Calculate salary from exactly those students
+      const totalSalary = validStudents.reduce(
+        (sum, item) => sum + Number(item.teacherShare || 0),
+        0
       );
 
       return {
         ...teacher._doc,
 
-        students: teacher.students
-          .filter((item) => item.student)
-          .map((item) => ({
-            ...item.student._doc,
-            teacherShare: item.teacherShare,
-          })),
+        students: validStudents.map((item) => ({
+          ...item.student._doc,
+          teacherShare: Number(item.teacherShare || 0),
+        })),
 
         totalSalary,
       };
